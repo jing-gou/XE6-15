@@ -1,0 +1,553 @@
+ # 排序算法原型 — 伪代码
+ 
+ > 对应 Proposal 02「任务优先级排序与展示」
+ > 负责人：肖戍果
+ 
+ ---
+ 
+ ## 一、数据模型
+ 
+ ```
+ Task {
+     id: string                         // 唯一标识
+     title: string                      // 标题
+     type: "issue" | "pr" | "review"    // 事项类型（review = 别人要我 Review 的 PR）
+     github_url: string
+     repo: string
+
+     // 运行态（与 requirements work_status / plan_bucket 对齐）
+     work_status:
+         "on_progress" | "pending_review" | "done"   // 主状态
+     plan_bucket:
+         "today" | "planning_pool" | "blocked" | "unestimated" | "done"
+     status_reason:
+         "changes_requested" | "blocked"
+         | "missing_estimate" | "merged"
+         | "closed_unmerged" | null                   // 状态原因标签
+
+     // 用户手动设定（不写回 GitHub）
+     priority: "P0" | "P1" | "P2" | null              // null 归入 P2 组末
+     hard_deadline: Date | null                       // 硬截止日期
+     estimatedHours: number | null                    // 预估用时（小时）
+     spentHours: number                              // 已耗时（小时）
+
+     // 老化计算用
+     createdAt: Date                     // 进入任务池的时间
+     updatedAt: Date                     // GitHub 上游最后更新时间（老化计算原点）
+
+     // 拖拽覆盖：pinnedIndex 是绝对槽位（0-based），null = 未拖拽过走自动排序
+     pinnedIndex: number | null
+
+     // 完成标记
+     completedAt: Date | null
+ }
+ ```
+ 
+ ---
+ 
+ ## 二、老化因子
+ 
+ 老化因子**仅针对无 DDL 字段的任务**，按天数分段定义"浮力"级别。
+ 排序时不是把老化数值代入公式算分，而是用它在层级中决定相对位置。
+ 
+ ```
+ // 输入：距 GitHub 上游最后更新时间的天数
+ // 输出：老化级别（越大 = 浮力越强）
+ 
+ function calcAgingLevel(daysSinceCreation: int) -> int {
+     // 注：排序只在 Layer 3b 就高定档使用本函数，不代入加权公式
+     if daysSinceCreation < 7:
+         return 0          // 不动
+     if 7 <= daysSinceCreation < 14:
+         return 1          // 稍微上浮
+     if 14 <= daysSinceCreation < 21:
+         return 2          // 明显上浮
+     if daysSinceCreation >= 21:
+         return 3          // 大幅上浮
+ }
+ ```
+ 
+ ---
+ 
+ ## 三、排序引擎
+ 
+ 排序不是计算一个总得分，而是**一层层划分**。每一层只看一个维度：先分出紧急组，再按优先级分组，每组内又分"有 DDL / 无 DDL"两个子组，各自排序后拼接。每层的输出是下一层的输入。
+ 
+ ### 3.1 主入口
+ 
+ ```
+ function sortTasks(tasks: List<Task>, prevPositions: Map<Task.id, int> | null) -> SortResult {
+     now = currentDateTime()
+ 
+     // 按运行态分流（与 requirements work_status / plan_bucket 对齐）
+     //   - 参与今日排序: work_status == on_progress 且 plan_bucket ∈ {today, planning_pool, unestimated}
+     //   - 待评审区:      work_status == pending_review → 不参与今日排序
+     //   - 阻塞区:        plan_bucket == blocked → 不参与今日排序
+     //   - 已完成区:      work_status == done → 沉底
+     //   - type == "review"(别人要我 review 的 PR) 与 issue/pr 同列，
+     //                           按 work_status 同样判定，不单独分组
+     activeTasks = tasks.filter(t =>
+         t.work_status == "on_progress"
+         && t.plan_bucket in {"today", "planning_pool", "unestimated"}
+     )
+     completedTasks = tasks.filter(t => t.work_status == "done")
+     // 待评审 / 阻塞的任务由各自分区单独展示，不进入本排序结果
+ 
+     // 1) 紧急 DDL 优先于拖拽：不管有没有 pinnedIndex，DDL ≤ 24h 全部提出来置顶
+     urgentTasks = activeTasks.filter(t =>
+         t.hard_deadline != null
+         && (t.hard_deadline - now) <= 24 hours
+     )
+     urgentTasks.sortBy(t => (
+         t.hard_deadline,
+         t.estimatedHours ?? Infinity,
+         t.id,
+     ))
+
+     remainingTasks = activeTasks.filter(t =>
+         t.hard_deadline == null
+         || (t.hard_deadline - now) > 24 hours
+     )
+
+     // 2) 非紧急组内保留拖拽顺序
+     pinnedTasks = remainingTasks
+         .filter(t => t.pinnedIndex != null)
+         .sortBy(t => t.pinnedIndex)
+
+     unpinnedTasks = remainingTasks
+         .filter(t => t.pinnedIndex == null)
+
+     autoSorted = autoSort(unpinnedTasks, now)
+     nonUrgentOrder = mergeWithPinned(autoSorted, pinnedTasks)
+
+     // 3) 拼接：紧急组 + 非紧急组
+     finalOrder = urgentTasks + nonUrgentOrder
+
+     // 4) 已完成沉底
+     completedTasks.sortBy(t => t.completedAt, desc)
+     finalOrder = finalOrder + completedTasks
+ 
+     // 计算最终位置 & 是否变位（对照上次排序，用于渲染 🔄）
+     reasons = generateReasons(finalOrder, now)
+     sortResult = buildSortResult(finalOrder, autoSorted, pinnedTasks, prevPositions)
+     sortResult.reasons = reasons
+ 
+     return sortResult
+ }
+ ```
+ 
+ ### 3.2 自动排序 — 顺序层级
+ 
+ ```
+ function autoSort(tasks: List<Task>, now: Date) -> List<Task> {
+ 
+     ──── Layer 1: 紧急兜底 ────
+     urgent = tasks.filter(t =>
+         t.hard_deadline != null
+         && (t.hard_deadline - now) <= 24 hours
+     )
+     // 紧急组内: DDL 近 → 远, 再按预估, 再按 id 兜底(验收6)
+     urgent.sortBy(t => (
+         t.hard_deadline,
+         t.estimatedHours ?? Infinity,
+         t.id,
+     ))
+ 
+     remaining = tasks.filter(t =>
+         t.hard_deadline == null
+         || (t.hard_deadline - now) > 24 hours
+     )
+     //   urgent 已从 remaining 中移除，不会参与下面的分层
+ 
+ 
+     ──── Layer 2: 优先级分组 ────
+     priorityGroups = [
+         "P0": [],
+         "P1": [],
+         "P2": [],
+         null: [],
+     ]
+     for each task in remaining {
+         priorityGroups[task.priority].add(task)
+     }
+     //  P0 组永远在 P1 组上面，P1 永远在 P2 上面，null 归入 P2 组末
+ 
+ 
+     ──── Layer 3 & 4: 组内排序 ────
+     sortedGroups = []
+     for each priority in ["P0", "P1", "P2", null] {
+         group = priorityGroups[priority]
+ 
+         //  组内再分两个子组
+         withDDL    = group.filter(t => t.hard_deadline != null)
+         withoutDDL = group.filter(t => t.hard_deadline == null)
+ 
+         //  Layer 3a — 有 DDL 的按截止日期排(逾期 > 24h 也在此, 截止更早反而靠前)
+         withDDL.sortBy(t => (
+             t.hard_deadline,                // 越近越靠前
+             t.estimatedHours ?? Infinity,  // Layer 4: 同 DDL 按预估用时
+             t.id,                           // 兜底: 确保顺序稳定
+         ))
+ 
+         //  Layer 3b — 无 DDL 的按老化"定档 + 天数"排
+         //  先按 calcAgingLevel 分四档(档位粗排, 与文档口径一致),
+         //  同档内再按距 GitHub 上游最后更新时间降序, 最后同天数按预估 / id
+         withoutDDL.sortBy(t => (
+             -calcAgingLevel(daysBetween(t.updatedAt, now)),  // 档位高靠前
+             -daysBetween(t.updatedAt, now),                   // 同档: 越久靠前
+             t.estimatedHours ?? Infinity,                      // Layer 4
+             t.id,                                              // 兜底
+         ))
+ 
+         sortedGroups.add(withDDL + withoutDDL)
+     }
+     //  拼接后: P0(D→N) + P1(D→N) + P2(D→N) + null(D→N)
+ 
+     return urgent + sortedGroups.flatten()
+ }
+ ```
+ 
+ ### 3.3 拖拽合并
+ 
+ ```
+ // 将自动排序结果与用户拖拽过的任务合并（绝对槽位填空，见下方注释）
+ // 语义：pinnedIndex = 用户设的绝对槽位（0-based，可稀疏）。
+//       拖拽任务钉到各自槽位，未拖拽任务按 autoSort 建议顺序填进空槽位。
+//       这样拖到第 1 位与拖到第 10 位结果不同，真正保留用户布局；
+//       新导入任务只填进空槽，不冲乱已有拖拽顺序。
+// 注：本函数只处理非紧急组内的拖拽合并。紧急 DDL 任务已在 sortTasks 中前置抽离，
+//     已拖拽的任务若 DDL 进入 24h 窗口，pinnedIndex 失效，被提到紧急组排列。
+
+ 
+ function mergeWithPinned(
+     autoSorted: List<Task>,
+     pinnedTasks: List<Task>
+ ) -> List<Task> {
+ 
+     if pinnedTasks.isEmpty:
+         return autoSorted
+ 
+     pinnedIds = setOf(pinnedTasks.map(t => t.id))
+     autoOnly = autoSorted.filter(t => t.id not in pinnedIds)
+ 
+     // pinnedIndex 是绝对槽位(0-based, 可稀疏)。
+     // 拖拽任务钉到各自槽位, 未拖拽任务按 autoSort 建议顺序填进空槽。
+     capacity = max(autoSorted.length, pinnedTasks.last().pinnedIndex + 1)
+     result = arrayFill(capacity, null)
+ 
+     // 1) 拖拽任务占住自己的绝对槽位
+     for each t in pinnedTasks {
+         slot = t.pinnedIndex
+         while slot >= result.length:
+             result.add(null)        // 尾部补空
+         result[slot] = t
+     }
+ 
+     // 2) 未拖拽任务按 autoSort 建议顺序填进空槽位
+     ai = 0
+     for i = 0; i < result.length; i++ {
+         if result[i] == null {
+             if ai >= autoOnly.length:
+                 break
+             result[i] = autoOnly[ai]
+             ai = ai + 1
+         }
+     }
+ 
+     // 3) 若 autoOnly 还有剩余(pinned 槽没留够空), 追加到末尾
+     while ai < autoOnly.length {
+         result.add(autoOnly[ai])
+         ai = ai + 1
+     }
+ 
+     return result.filter(x => x != null)   // 去掉中间空洞
+ }
+ ```
+ 
+ ---
+ 
+ ## 四、排序理由
+ 
+ 每层对应一条理由。用户看每一条都能自己核对。
+ 
+ ```
+ function generateReasons(sorted: List<Task>, now: Date)
+     -> Map<Task.id, List<SortReason>> {
+ 
+     reasons = {}
+ 
+     // 先统计每个任务"在其子组内"的相对排位, 用来生成准确理由
+     //   subGroupRank[task.id] = (rankInSubGroup, subGroupSize)
+     //   subGroup = 同优先级 + 同(有DDL/无DDL)下, 与 autoSort 分组口径一致
+     subGroupOf = {}   // taskId -> "urgent" | "<priority>:ddl" | "<priority>:nodd" | "done"
+     rankIn = {}       // taskId -> 该子组内 0-based 排名
+     sizeOf = {}       // subGroup -> 子组大小
+     counters = {}
+     for each task in sorted {
+         key = subGroupKey(task, now)          // 见下方 helper
+         sizeOf[key] = (sizeOf[key] ?? 0) + 1
+         rankIn[task.id] = counters[key] ?? 0
+         counters[key] = (counters[key] ?? 0) + 1
+         subGroupOf[task.id] = key
+     }
+ 
+     // 同组下一档优先级, 用于"排在 X 组之上"文案
+     lowerPriorityOf = { "P0": "P1", "P1": "P2" }
+ 
+     for each task in sorted {
+         taskReasons = []
+ 
+         // Layer 1: 紧急兜底
+         if task.hard_deadline != null
+         && (task.hard_deadline - now) <= 24 hours {
+             rank = rankIn[task.id] + 1
+             taskReasons.add({
+                 layer: "紧急兜底",
+                 detail: "DDL 在 24 小时内，置顶显示（紧急组内排第 ${rank}）",
+             })
+         }
+ 
+         // Layer 2: 优先级分组
+         if task.priority != null {
+             if task.priority in lowerPriorityOf {
+                 taskReasons.add({
+                     layer: "优先级分组",
+                     detail: "优先级 ${task.priority}，排在 ${lowerPriorityOf[task.priority]} 组之上",
+                 })
+             } else {
+                 // P2 已是最低
+                 taskReasons.add({
+                     layer: "优先级分组",
+                     detail: "优先级 ${task.priority}（当前最低优先级组）",
+                 })
+             }
+         } else {
+             taskReasons.add({
+                 layer: "优先级分组",
+                 detail: "未设置优先级，归入 P2 组末",
+             })
+         }
+ 
+         // Layer 3: DDL / 老化（依据真实排名, 不再用"排最前"硬编码）
+         if task.hard_deadline != null {
+             hoursLeft = hoursBetween(now, task.hard_deadline)
+             label = hoursLeft < 0
+                 ? "已逾期 ${abs(hoursLeft)} 小时"
+                 : "剩余 ${formatHours(hoursLeft)}"
+             rank = rankIn[task.id] + 1
+             total = sizeOf[subGroupOf[task.id]]
+             if total > 1:
+                 detail = label + "，在同组事项中排第 ${rank}/${total}（同 DDL 日期）"
+             else:
+                 detail = label
+             taskReasons.add({
+                 layer: "同组 DDL 排序",
+                 detail: detail,
+             })
+         } else {
+             daysSince = daysBetween(task.updatedAt, now)
+             level = calcAgingLevel(daysSince)
+             rank = rankIn[task.id] + 1
+             total = sizeOf[subGroupOf[task.id]]
+             if total > 1:
+                 detail = "未设 DDL，距上次更新 ${daysSince} 天（老化级别 ${level}），" +
+                     "在同档无 DDL 事项中排第 ${rank}/${total}"
+             else:
+                 detail = "未设 DDL，距上次更新 ${daysSince} 天（老化级别 ${level}）"
+             taskReasons.add({
+                 layer: "无 DDL 老化上浮",
+                 detail: detail,
+             })
+         }
+ 
+         // Layer 4: 预估用时
+         //   "同档"= 同一子组(同DDL 或 同老化分组)
+         //   只在"预估最短"时说"比同档更快", 其余按实际是第几快
+         if task.estimatedHours != null {
+             sameBucket = tasksInSubGroup(sorted, subGroupOf[task.id], now)
+                 .filter(t => t.estimatedHours != null)
+                 .sortBy(t => t.estimatedHours)
+             fasterIdx = sameBucket.findIndex(t => t.id == task.id)
+             if fasterIdx == 0:
+                 note = "比同档其他事项更快"
+             else:
+                 note = "同档中预估用时第 ${fasterIdx + 1} 短"
+             taskReasons.add({
+                 layer: "预估用时",
+                 detail: "预估 ${task.estimatedHours} 小时，${note}",
+             })
+         } else {
+             taskReasons.add({
+                 layer: "预估用时",
+                 detail: "未填预估用时，排在同档最后（前端显示「待估算」）",
+             })
+         }
+ 
+         // 拖拽标记
+         if task.pinnedIndex != null {
+             taskReasons.add({
+                 layer: "手动调整",
+                 detail: "你手动拖拽到此位置，跳过自动排序",
+             })
+         }
+ 
+         reasons[task.id] = taskReasons
+     }
+ 
+     return reasons
+ }
+ 
+ // ── 排序理由用到的 helper ──
+ 
+ // 子组键: 同优先级 + 同 DDL 日期（有 DDL） / 同老化级别（无 DDL）
+ function subGroupKey(task: Task, now: Date) -> string {
+     if task.work_status == "done":
+         return "done"
+     if task.hard_deadline != null
+     && (task.hard_deadline - now) <= 24 hours:
+         return "urgent"
+     p = task.priority ?? "P2-末"
+     if task.hard_deadline != null:
+         return "${p}:ddl:${formatDate(task.hard_deadline)}"
+     daysSince = daysBetween(task.updatedAt, now)
+     return "${p}:nodd:level-${calcAgingLevel(daysSince)}"
+ }
+ 
+ // 取同 DDL 日期 / 同老化级别的所有任务（用于 Layer 4 的预估用时比较）
+ function tasksInSubGroup(sorted: List<Task>, key: string, now: Date) -> List<Task> {
+     return sorted.filter(t =>
+         key == "done"
+             ? t.work_status == "done"
+             : subGroupKey(t, now) == key
+     )
+ }
+ ```
+ 
+ 从代码可以看出：排序理由就是按每层顺序生成的，
+ 用户在脑子里可以还原排序过程。
+ 
+ ---
+ 
+ ## 五、边界情况
+ 
+ ```
+ // 1. 同条件稳定性
+ //    所有排序字段相等时 → 按 id 字母序兜底
+ //    每次排序结果一致，不随机乱跳
+ 
+ // 2. 已完成任务
+ //    不参与排序，自动沉到"已完成"区域，按完成时间倒序
+ 
+ // 3. 新导入任务
+ //    priority=null, hard_deadline=null, estimatedHours=null
+ //    → 归到（P2-末）组 → 无 DDL 子组，靠老化慢慢浮上来
+ 
+ // 4. DDL 已逾期 > 24h 的任务
+ //    紧急兜底仅覆盖 24h 内
+ //    逾期 > 24h 的仍留在 Layer 2 的优先级组内
+ //    在"有 DDL"子组中按 hard_deadline 排（已逾期的截止更早，反而靠前）
+ 
+ // 5. 拖拽后数据变更
+ //    已拖拽的任务若仍存在，pinnedIndex 保留（在非紧急组内生效）
+ //    若已拖拽任务变成紧急 DDL（DDL ≤ 24h），pinnedIndex 失效，被提到紧急组
+ //    新导入的任务（pinnedIndex = null）按 autoSort 建议填进空槽位
+ //    不冲乱已有拖拽布局
+ 
+ // 6. "挪到明日"
+ //    用户标记"明日"时：
+ //    - 弹窗询问"预估还需要多少时间"（更新 estimatedHours）
+ //    - 将 hard_deadline 设为明日 23:59
+ //    - 下次排序: 距明日 23:59 仍在 24h 外则进入"有 DDL"子组按截止排;
+ //              进入 24h 窗口后才进 Layer 1 紧急兜底置顶
+ //       (故不应一律说"下次排序即紧急兜底", 取决于现在到次日 23:59 是否 ≤ 24h)
+ 
+ // 7. Review 请求 / 待评审 / 阻塞(区分三类易混对象)
+ //    7a. type == "review"(别人要我 Review 的 PR) → 与 issue/pr 同列混排, 无特殊待遇
+ //    7b. work_status == pending_review(我提交后等别人 Review) → 不参与今日排序, 进待评审区
+ //    7c. plan_bucket == blocked → 不参与今日排序, 进阻塞区
+ //    这三者不要混为一谈(伪代码曾因 status 字段口径错误而把 7b 当 active)
+ 
+ // 8. 老化仅针对无 DDL 任务
+ //    有 DDL 的任务按 hard_deadline 排序, 不参与老化
+
+// 9. 拖拽作用域
+//    紧急 DDL（Layer 1）优先于所有拖拽：DDL ≤ 24h 的任务不管有无 pinnedIndex，
+//    全部从各个分组中抽取出来，按截止日期置顶排列。
+//    非紧急组内（Layer 2-4），拖拽在非紧急组内保留绝对槽位（mergeWithPinned）。
+//    这是"紧急 DDL 最优先"原则。
+
+// 10. 变更标记 🔄
+//    排序后 finalPosition != prevPosition 的任务在前端打 🔄。
+//    prevPosition 来自上次 sortTasks 的结果（持久化）；首次排序 prev=null，建议视为无变更。
+
+// 11. 容量分配 / 硬截止冲突弹窗
+//    本 Proposal 只产出“排序后的任务列表”，不做容量分配。
+//    按 requirements 自动重排流程，“按容量分配到今日计划”与“硬截止超出容量弹窗”由 Proposal 03 负责。
+//    本接口输出 SortResult 供 P03 消费。
+```
+
+ 
+ ---
+ 
+ ## 六、与 Proposal 03 的接口
+ 
+ ```
+ // 排序结果导出格式
+ 
+ interface SortResult {
+     taskId: string
+     sortPosition: int            // 最终排名（0-based，含拖拽）
+     autoSortPosition: int        // 算法建议排名（不含拖拽）
+     prevPosition: int | null     // 上次排序的位置（首次为 null）
+     moved: boolean               // sortPosition != prevPosition → 前端打 🔄
+     isUserAdjusted: boolean      // 是否被拖拽覆盖
+     reasons: SortReason[]
+ }
+
+ function buildSortResult(
+     finalOrder: List<Task>,
+     autoSorted: List<Task>,
+     pinnedTasks: List<Task>,
+     prevPositions: Map<Task.id, int> | null
+ ) -> List<SortResult> {
+     pinnedIds = setOf(pinnedTasks.map(t => t.id))
+     autoPos = {}
+     autoSorted.forEach((t, i) => autoPos[t.id] = i)
+     results = []
+     finalOrder.forEach((t, i) => {
+         prev = prevPositions ? prevPositions[t.id] : null
+         results.add({
+             taskId: t.id,
+             sortPosition: i,
+             autoSortPosition: autoPos[t.id] ?? i,
+             prevPosition: prev,
+             moved: prev != null && prev != i,
+             isUserAdjusted: t.pinnedIndex != null,
+             reasons: [],
+         })
+     })
+     return results
+ }
+ 
+ interface SortReason {
+     layer: string                // "紧急兜底" / "优先级分组" / "同组 DDL 排序" / "无 DDL 老化上浮" / "预估用时" / "手动调整"
+     detail: string               // 人类可读的解释
+ }
+ ```
+ 
+ ---
+ 
+ ## 七、验收对照
+ 
+ | # | 验收标准 | 算法覆盖 |
+ |---|---------|----------|
+ | 1 | P0/P1/P2 分组，P0 在上 | Layer 2: 按 priority 分组 |
+ | 2 | 即将逾期的排前面，DDL 更近更靠前 | Layer 3a: withDDL 按 hard_deadline 排序 |
+ | 3 | 点开事项看到排序理由 | generateReasons() 按层 + 真实子组排名生成 |
+ | 4 | 无 DDL 显示 ♾️ | Layer 3b: 无 DDL 子组 — 前端据此渲染 |
+ | 5 | 无预估用时显示"待估算" | Layer 4: estimatedHours ?? Infinity → 前端渲染 |
+ | 6 | 相同条件下顺序稳定 | 兜底 t.id 比较 |
+ | 7 | 不动 GitHub 数据 | 只读 priority/hard_deadline/estimatedHours 本地字段 |
+ | 8 | 结果可被 Proposal 03 读取 | SortResult 接口 |
+ | 9 | 四种时间状态可排、可看理由 | 紧急 / 有 DDL / 无 DDL 老化 / 已完成 |
+ | 10 | Review PR 混排 | type 字段不影响排序逻辑 |
