@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-themes="tokyo-night,dracula,catppuccin-mocha,nord,corporate-clean">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VoiceLife 声活 · 30min 路演</title>
+<link rel="stylesheet" href="../../.claude/skills/html-ppt/assets/fonts.css">
+<link rel="stylesheet" href="../../.claude/skills/html-ppt/assets/base.css">
+<link rel="stylesheet" id="theme-link" href="../../.claude/skills/html-ppt/assets/themes/tokyo-night.css">
+<link rel="stylesheet" href="../../.claude/skills/html-ppt/assets/animations/animations.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="tpl-voicelife-roadshow">
+<div class="deck">
+
+  <!-- ===== 1. 封面 ===== -->
+  <section class="slide cover-slide" data-title="封面">
+    <div class="cover-bg-decor" aria-hidden="true"></div>
+    <div class="cover-soundwaves" aria-hidden="true">
+      <span class="sw-bar" style="--h:60%"></span>
+      <span class="sw-bar" style="--h:85%"></span>
+      <span class="sw-bar" style="--h:45%"></span>
+      <span class="sw-bar" style="--h:100%"></span>
+      <span class="sw-bar" style="--h:55%"></span>
+      <span class="sw-bar" style="--h:75%"></span>
+      <span class="sw-bar" style="--h:40%"></span>
+      <span class="sw-bar" style="--h:90%"></span>
+      <span class="sw-bar" style="--h:50%"></span>
+    </div>
+    <div class="cover-brand anim-fade-up" data-anim="fade-up">
+      <span class="cover-brand-icon">♪</span>
+      <span class="cover-brand-name">VoiceLife <strong>声活</strong></span>
+    </div>
+    <h1 class="h1 anim-rise-in" data-anim="rise-in" style="--anim-dur:.9s">说出来。<br>到点听。<br><span class="anim-gradient-flow" style="--accent:#f0883e;--accent-2:#ff9e64;--accent-3:#ffd166">随口改。</span></h1>
+    <p class="lede mt-m anim-fade-up" data-anim="fade-up" style="animation-delay:.3s">语音优先的日程提醒工具 — 你随口说、它按时提醒、你随口回应，全程不用动手。</p>
+    <div class="speaker anim-fade-up" data-anim="fade-up" style="animation-delay:.5s">
+      <div class="av"></div>
+      <div><b>XE6-15 团队</b><span>演示 · 30 min · 2026年7月</span></div>
+    </div>
+    <div class="deck-footer cover-footer">
+      <span></span>
+      <span class="slide-number" data-current="1" data-total="13"></span>
+    </div>
+    <aside class="notes">
+      <p>大家下午好。我先讲一个场景：早上你发现牙膏没了，告诉自己下班买。下班回家，走上楼道，进门，第二天又没牙膏。</p>
+      <p>这个场景<strong>每个人</strong>都经历过。不是因为记性差，是因为我们没有给"小事"配一个合适的工具。今天我要给大家介绍的就是为这个场景做的产品——<strong>VoiceLife 声活</strong>。</p>
+      <p>它是一款<strong>语音优先的日程提醒工具</strong>。核心体验就十二个字：<strong>你随口说、它按时提醒、你随口回应</strong>——全程不掏手机。</p>
+      <p>接下来30分钟，我会带大家看：问题是什么、机会在哪、我们怎么做的产品设计、以及工程怎么落地。</p>
+      <p>中间有问题可以随时打断。好，我们开始。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 2. 开场互动 ===== -->
+  <section class="slide" data-title="开场互动">
+    <p class="kicker">开场互动 · 2min</p>
+    <h2 class="h2">现场举手：<br>谁曾经<strong style="color:var(--accent)">告诉自己</strong>要买一样东西，<br>回到家才发现忘了？</h2>
+    <p class="lede mt-l" style="font-size:22px">好，再问一个：在座的有没有人<strong>把这事发到微信传输助手</strong>的？</p>
+    <div class="mt-xl tc">
+      <p style="font-size:22px;color:var(--accent);font-weight:700;max-width:40ch;margin:0 auto;line-height:1.6">
+        这恰恰说明，大家明明在意这些安排，<br>却找不到一个比"自己记住"或"发微信给自己"<br>更趁手的工具。
+      </p>
+    </div>
+    <aside class="notes">
+      <p>先做个小调查。（举手互动）</p>
+      <p>现场有多少人，曾经<strong>脑子告诉自己要买东西，回到家才想起忘了</strong>？来举一下手。（等一下）好，基本都举了。</p>
+      <p>再追问一个：有没有人<strong>把这事发到微信传输助手</strong>作为"记录"的？（等一下，看反应，应该很多人笑或举手）</p>
+      <p>大家看——微信传输助手。为什么这么多人用？因为它快、没门槛、打开就能打字或录语音。但它<strong>只管记、不管提醒</strong>——你还得自己记住去翻聊天记录。</p>
+      <p>这个矛盾说明一件事：大家明明在意这些安排，但市场上<strong>没有一个工具能把"随口记、按时提醒、随口回应"这三个动作串起来</strong>。</p>
+      <p>VoiceLife 就是为这个做的。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 3. 问题与用户 ===== -->
+  <section class="slide" data-title="问题与用户">
+    <p class="kicker">问题与用户 · 3min</p>
+    <h2 class="h2">不是缺工具，是工具都假设<br>你有<strong style="color:var(--accent)">手、有屏幕、有注意力</strong>。</h2>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="emoji">🧠</div>
+        <h4>脑子里记不住</h4>
+        <p>告诉自己下班买牙膏，到家忘了。来回几次都是偶然解决，不是工具解决。</p>
+      </div>
+      <div class="pain-card">
+        <div class="emoji">🤳</div>
+        <h4>掏出手机成本高</h4>
+        <p>通勤路上、做饭时想记一件事 — 掏手机→解锁→找App→打字。算了，等会儿再记。结果忘了。</p>
+      </div>
+      <div class="pain-card">
+        <div class="emoji">🔕</div>
+        <h4>提醒来了没法随口回</h4>
+        <p>手是湿的、抓着扶手的、在和别人说话的 — 想"稍后"还得腾出手点屏幕。</p>
+      </div>
+    </div>
+    <div class="persona-grid mt-l">
+      <div class="persona-card"><div class="icon">🛒</div><h4>日常记录者</h4><p>下班顺路买东西、拿快递</p></div>
+      <div class="persona-card"><div class="icon">💊</div><h4>规律生活者</h4><p>吃药、例会、锻炼</p></div>
+      <div class="persona-card"><div class="icon">🚇</div><h4>多任务并行者</h4><p>通勤、做饭同时要处理安排</p></div>
+      <div class="persona-card"><div class="icon">⌚</div><h4>无屏设备用户</h4><p>智能音箱、穿戴设备</p></div>
+    </div>
+    <aside class="notes">
+      <p>我们来拆一下问题的本质。</p>
+      <p><strong>三个场景</strong>——第一个，"脑子里记不住"。小事不配进日历，但小事也是要做的。你没记、它没提醒、你就忘。</p>
+      <p>第二个，"掏手机成本高"。通勤路上、做饭、开会间隙，你心里冒出一个"得记住"的念头，但从掏手机到打完字的那几秒钟，你劝自己"算了等会儿"——然后大概率忘了。</p>
+      <p>第三个场景最典型——<strong>提醒来了没法随口回</strong>。手机响了，但你在做饭手是湿的、在公交抓着扶手、在跟同事说话——想点"稍后"还得擦手掏手机。</p>
+      <p>这三件事的共同问题是什么？<strong>现有的工具，在设计上天然假设用户有手、有屏幕、有注意力。</strong>但现实生活里大量时刻不具备这些条件。</p>
+      <p>那谁最需要这个东西？四类人：日常记录者、规律生活者（吃药打卡）、多任务并行者（通勤+做饭+安排事情）、无屏设备用户。下面我们看竞品怎么做的。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 4. 竞品速览与机会点 ===== -->
+  <section class="slide" data-title="竞品速览">
+    <p class="kicker">竞品速览 · 3min</p>
+    <h2 class="h2">Siri 帮你记录提醒，<br>但提醒响了<strong style="color:var(--accent)">还得掏手机</strong>。</h2>
+    <table class="cmp-table">
+      <tr><th>竞品 / 做法</th><th>优势</th><th>不足</th></tr>
+      <tr><td><strong>手机闹钟 / 提醒</strong></td><td>简单直接</td><td>只响铃，不知道什么事；响应需手动</td></tr>
+      <tr><td><strong>Siri / 小爱同学</strong></td><td>可语音创建</td><td>提醒到了仍是 GUI 通知；周期修改复杂</td></tr>
+      <tr><td><strong>日历 App</strong></td><td>日程结构完善</td><td>创建靠手动填写，语音接口薄弱</td></tr>
+      <tr><td><strong>番茄 TODO 等</strong></td><td>专注场景好</td><td>不是日常生活场景；交互依赖屏幕</td></tr>
+      <tr class="highlight"><td colspan="3">🎯 机会：没人把「创建 → 提醒 → 响应 → 修改」用语音串起来。</td></tr>
+    </table>
+    <p class="lede mt-l" style="font-size:16px">语音助手只在"记"这一步用了语音，提醒和修改仍回到 GUI。<br><strong style="color:var(--accent)">无屏或不便看屏的场景长期空白。</strong></p>
+    <aside class="notes">
+      <p>看一下现在大家都在用什么。</p>
+      <p><strong>手机闹钟和提醒</strong>——最简单粗暴，但只负责响，不知道什么事。更关键的是你没法随口回应，"知道了"得靠手去点。</p>
+      <p><strong>Siri/小爱</strong>——很多人说"这不 Siri 就做了吗？"。对，Siri 确实能语音创建提醒。但提醒到了之后呢？<strong>还是一个 GUI 通知</strong>。你刚说"好，给它停了"它听不懂，你得掏出手机按掉。这就叫"只做了一半的语音"。</p>
+      <p><strong>日历 App</strong>——结构最好最完善，但创建靠打字、修改更麻烦。你试一下在 Google Calendar 改会议时间——最少点四次。</p>
+      <p>所以我们不是在和一个产品竞争，<strong>我们是在一个语音闭环的空地上做第一个产品</strong>。</p>
+      <p>一句话：Siri 帮你记账单提醒，但提醒响了你得找手机。VoiceLife 不用。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 5. 产品方案：核心设计 total ===== -->
+  <section class="slide" data-title="产品方案">
+    <p class="kicker">核心设计 · 5min</p>
+    <h2 class="h2">三步闭环：<br><strong style="color:var(--accent)">说出来 → 到点听 → 随口改</strong></h2>
+    <div class="pipeline mt-l">
+      <div class="pipe-node s1"><div class="n">1</div><h4>说出来</h4><p>按住说话，松开记好<br>随时问"我该干什么来着？"</p></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node s2"><div class="n">2</div><h4>到点听</h4><p>时间到了语音播报<br>打断、推迟、追问都能说</p></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-node s3"><div class="n">3</div><h4>随口改</h4><p>时间变了说一句就改<br>改错了 15 分钟内撤销</p></div>
+    </div>
+    <table class="cmp-table mt-xl">
+      <tr><th>Proposal</th><th>链路结点</th><th>一句话</th></tr>
+      <tr><td><strong>P1 · 语音创建与查询</strong></td><td>说出来</td><td>按住说话，松开记好</td></tr>
+      <tr><td><strong>P2 · 提醒触发与即时响应</strong></td><td>到点听</td><td>时间到了告诉你，你可以打断</td></tr>
+      <tr><td><strong>P3 · 已有日程变更与周期控制</strong></td><td>随口改</td><td>说一句就能改，15分钟内撤销</td></tr>
+    </table>
+    <aside class="notes">
+      <p>OK，进入核心部分——我们的产品方案是怎么设计的。</p>
+      <p>整个 VoiceLife 的产品链路只有<strong>三步</strong>：说出来、到点听、随口改。非常简单，因为日常生活的事就不该复杂。</p>
+      <p><strong>第一步</strong>，你随口说出"下班买牙膏"，它记下来。<strong>第二步</strong>，时间到了，它用语音告诉你"该买牙膏了"，附带铃声。你可以说"知道了"结束，也可以"十分钟后再说"。<strong>第三步</strong>，万一时间变了，说一句"改到后天"就行。改错了呢？15 分钟内可以撤销。</p>
+      <p>这三个步骤对应三个 Proposal——P1 负责输入、P2 负责触发和响应、P3 负责变更。三者串起来就是一条完整的<strong>语音闭环</strong>。</p>
+      <p>下面逐个展开。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 6. P1：说出来 ===== -->
+  <section class="slide" data-title="P1-说出来">
+    <p class="kicker">P1 · 语音创建与查询</p>
+    <h2 class="h2">说出来。<br>按住说话，松开记好。</h2>
+    <div class="persona-grid mt-l">
+      <div class="persona-card">
+        <div class="icon">📅</div>
+        <h4>创建日程</h4>
+        <p>"明天下午三点到五点开产品会" — 有<strong>时间段</strong>的事项</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🔔</div>
+        <h4>创建提醒事项</h4>
+        <p>"晚上八点吃药，每天" — 仅有<strong>时间点</strong>，支持周期</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">🔍</div>
+        <h4>即时查询</h4>
+        <p>"今天有哪些安排？""下班要干什么来着？"</p>
+      </div>
+      <div class="persona-card">
+        <div class="icon">💬</div>
+        <h4>不是聊天机器人</h4>
+        <p>专注记录生活，只记录和提醒，不闲聊</p>
+      </div>
+    </div>
+    <p class="lede mt-l" style="font-size:15px;max-width:52ch">两种事项：<strong>日程</strong>（有时间段）和 <strong>提醒事项</strong>（仅有时间点）。语音输入，IM 给确认回执。</p>
+    <aside class="notes">
+      <p>先看第一步——<strong>说出来</strong>。也就是 P1：语音创建与查询。</p>
+      <p>它要解决的是<strong>"记下来"</strong>这件事。用户按住说话、松开就记好。就这么简单。</p>
+      <p>支持两类事项：第一类叫<strong>日程</strong>，是有时间段的，比如"明天下午三点到五点开会"；第二类叫<strong>提醒事项</strong>，只有一个时间点，比如"晚上八点吃药"——还支持周期，比如"每天"。</p>
+      <p>查询也很重要——你随时可以问"今天有哪些安排？"或者"下班要干什么来着？"。这是很多竞品缺失的能力。</p>
+      <p>还有一个关键设计点我必须强调：<strong>这不是一个聊天机器人</strong>。它不闲聊、不讲笑话、不设情景模式。<strong>它就是用来记住你该做的事的</strong>。这么做有两个原因：一是降低语音识别复杂度和误报率；二是让用户的预期非常明确——打开它就是为了记事情。</p>
+      <p>记完之后怎么回答？IM 发一条确认回执。语音负责快，IM 负责稳——你可以随时回看。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 7. P2：到点听 ===== -->
+  <section class="slide" data-title="P2-到点听">
+    <p class="kicker">P2 · 提醒触发与即时响应</p>
+    <h2 class="h2">到点听。<br>两段式提醒，<br>四件事<strong style="color:var(--accent)">一口回应</strong>。</h2>
+    <div class="feat-grid">
+      <div class="feat-card blue">
+        <h4>预告 · 开始前 15min</h4>
+        <p>短铃声 + 语音简要播报。让你心里有数。不可延迟。</p>
+      </div>
+      <div class="feat-card green">
+        <h4>提醒 · 开始时</h4>
+        <p>语音播报 + 持续铃声。1 分钟无回应则<strong>自动推迟</strong>。</p>
+      </div>
+    </div>
+    <p style="font-size:15px;font-weight:700;color:var(--text-1);margin-top:20px">唤醒词"小鹏小鹏" — 四种响应：</p>
+    <div class="response-grid">
+      <div class="response-card"><h4>"知道了"</h4><p>结束提醒</p></div>
+      <div class="response-card"><h4>"十分钟后再提醒"</h4><p>推迟，不改变原定时间</p></div>
+      <div class="response-card"><h4>"会议在哪？"</h4><p>追问详情</p></div>
+      <div class="response-card"><h4>"跳舞推迟，其余知道了"</h4><p>精准边界操作</p></div>
+    </div>
+    <aside class="notes">
+      <p>P2 是提醒环节——<strong>到点听</strong>。这是 VoiceLife 整个闭环里最"产品感"的一步。</p>
+      <p><strong>两级触发</strong>。第一级是<strong>预告</strong>——开始前 15 分钟，一个短铃加一句语音，"15分钟后有个产品会"。不用你操作，就是让你心里有数。预告不可延迟——这是故意设计的，不能被关掉。因为预告的意义就是"提前通知"，关了就不叫预告了。</p>
+      <p>第二级是<strong>提醒</strong>——到了时间点，语音完整播报内容，同时持续响铃。一分钟后如果你没有回应，<strong>自动推迟</strong>。这不是 bug，是 feature。现实生活中你不可能永远第一时间响应，自动推迟保证你不会错过。</p>
+      <p>需要讲一下<strong>唤醒词</strong>。为什么要有唤醒词？因为系统在播报语音，同时你自己也可能在说话——没有唤醒词，系统会误以为每句话都是指令。我们选"小鹏小鹏"，固定唤醒词的好处是降低误识别率，跟 Siri 的"Hey Siri"、小爱的"小爱同学"逻辑一样。</p>
+      <p>用户能怎么回应？<strong>四种方式</strong>："知道了"直接结束；"十分钟后再提醒"推迟；"会议在哪？"追问详情；最复杂的是多提醒场景——"跳舞那个推迟一小时，其余我知道了"，精准边界操作。</p>
+      <p>这就是语音跟 GUI 最大的不同：<strong>GUI 你得挨个点，语音一句话说完。</strong></p>
+    </aside>
+  </section>
+
+  <!-- ===== 8. P3：随口改 ===== -->
+  <section class="slide" data-title="P3-随口改">
+    <p class="kicker">P3 · 已有日程变更与周期控制</p>
+    <h2 class="h2">随口改。<br>日程不是静态的。</h2>
+    <p class="dim mb-m" style="font-size:15px">会议室坏了、临时有事、取消某次例会 — 如果说一句话就能改，语音闭环才真正成立。</p>
+    <table class="change-table">
+      <tr><th>操作</th><th>示例</th><th>确认策略</th></tr>
+      <tr><td>修改单次</td><td>"下午会改到四点半"</td><td>无冲突直接执行</td></tr>
+      <tr><td>仅改本次实例</td><td>"周五跑步改周六"</td><td>无冲突直接执行</td></tr>
+      <tr><td>永久改周期</td><td>"以后跑团都改到周六"</td><td><strong>需显式确认</strong></td></tr>
+      <tr><td>跳过</td><td>"周五不去了"</td><td>单次日程等同取消</td></tr>
+      <tr><td>删除</td><td>"删掉每周一早会"</td><td><strong>必须显式确认</strong></td></tr>
+      <tr><td>撤销</td><td>"哎不对，撤销刚才的修改"</td><td>15min 内有效</td></tr>
+    </table>
+    <aside class="notes">
+      <p>P3 是最后一步——<strong>随口改</strong>。为什么要一个单独的 Proposal 来管变更？因为日程不是静态的。</p>
+      <p>会议室临时被占了、老板说换个时间、你临时有事去不了——这些变更每天都会发生。但如果你每次都要手动掏手机进 App 去改，前面的语音创建就白做了，<strong>语音闭环不成立</strong>。</p>
+      <p>所以我们支持六种变更操作，从简单到复杂。</p>
+      <p>最容易的是<strong>修改单次</strong>——"明天下午的会改到四点半"，没冲突就走。</p>
+      <p><strong>仅改本次实例</strong>——"本周五跑步改到周六"，只改这一周，下周还是周五。</p>
+      <p><strong>永久改周期</strong>——"以后跑团都改到周六"，这个风险高，必须显式确认。我们不会让用户一句话就把整个周期系列改了——这是个安全性设计。</p>
+      <p><strong>跳过</strong>——"周五不去了"，单次日程直接取消，周期事项跳过这一次。</p>
+      <p><strong>删除</strong>——"删掉每周一早会"，高风险操作，必须确认。</p>
+      <p>最后一个很特别——<strong>撤销</strong>。"哎不对，撤销刚才的修改"，15 分钟内有效，跨会话也计入。这是因为语音交互有天然的不确定性——你可能说错了、或者改变主意——"后悔药"是必要的。</p>
+      <p>P3 的产品体验有一个底层原则：<strong>低风险操作静默执行，高风险必须有确认这一道屏。这不是多此一举，是对语音交互的负责。</strong></p>
+    </aside>
+  </section>
+
+  <!-- ===== 9. 关键决策与取舍 ===== -->
+  <section class="slide" data-title="关键决策">
+    <p class="kicker">关键决策 · 3min</p>
+    <h2 class="h2">把一环做到<strong style="color:var(--accent)">90 分</strong>，<br>而不是三环摊开到 60 分。</h2>
+    <table class="scope-table mt-l">
+      <tr><th class="do">✓ 做</th><th class="dont">✗ 不做（为什么）</th></tr>
+      <tr><td><span class="check">✓</span>时间触发</td><td><span class="cross">✗</span>位置等非时间触发（额外硬件依赖）</td></tr>
+      <tr><td><span class="check">✓</span>普通话</td><td><span class="cross">✗</span>方言、多语言（先保证准确率）</td></tr>
+      <tr><td><span class="check">✓</span>固定唤醒词</td><td><span class="cross">✗</span>自定义唤醒词（增加误唤醒风险）</td></tr>
+      <tr><td><span class="check">✓</span>简单周期</td><td><span class="cross">✗</span>工作日/节假日规则（MVP 先跑通）</td></tr>
+      <tr><td><span class="check">✓</span>语音 + IM 回执</td><td><span class="cross">✗</span>纯 GUI</td></tr>
+      <tr><td><span class="check">✓</span>本地存储优先</td><td><span class="cross">✗</span>跨日历源同步（独立产品能力）</td></tr>
+    </table>
+    <p class="dim mt-l" style="font-size:14px;max-width:50ch">三个全局决策：<strong>语音优先，不是语音唯一</strong>（IM 给回执）· <strong>先覆盖时间触发</strong>（最重要的80%）· <strong>前台运行假设</strong>（MVP 验证闭环后再扩展）。</p>
+    <aside class="notes">
+      <p>现在我们聊<strong>关键决策</strong>。这部分特别重要——不是只有"做什么"，"不做什么"才是更难的决策。</p>
+      <p>先讲<strong>三个全局性决策</strong>。</p>
+      <p><strong>决策一</strong>：语音优先，但不是语音唯一。语音是主交互通道，因为它是人在双手不便时最天然的输出方式。但 IM——微信消息之类的——作为操作回执：修改成功/失败、日程确认，通过 IM 给你一个可回看的记录。语音负责快，IM 负责稳。</p>
+      <p><strong>决策二</strong>：先覆盖时间触发，不做位置、蓝牙等其他触发条件。为什么？因为时间是日程的<strong>基本必要字段</strong>，重要度占 80%。位置触发需要额外的硬件能力和用户行为数据，可以后续迭代。核心原则：把最重要的 80% 做好，不因 20% 拖慢节奏。</p>
+      <p><strong>决策三</strong>：App 始终前台运行的假设。本期不处理后台/锁屏唤醒，专注在应用内完成完整语音闭环。后台唤醒涉及系统级能力，独立成后续 Proposal。</p>
+      <p>再看右边的"不做"清单。每一个都有理由——方言先不碰因为要优先保证普通话准确率；自定义唤醒词不做因为会增加调试成本；复杂周期不做因为"每天/每周/每月"已经满足了 90% 的需求。</p>
+      <p>我们的策略不是"做更多功能"，而是<strong>把这条链路里每一个环节都做到 90 分</strong>。一个用户从"记一件事"到"被提醒"到"随口回应"全流程跑通，才能验证"语音优先"这个核心假设。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 10. Demo ===== -->
+  <section class="slide" data-title="Demo">
+    <p class="kicker">Demo · 8min</p>
+    <h2 class="h2">眼见为实。</h2>
+    <div class="demo-box" style="height:380px">
+      <div style="text-align:center">
+        <div style="font-size:56px;margin-bottom:12px">🎬</div>
+        <p style="font-size:20px">VoiceLife 声活 · 现场演示</p>
+        <p style="font-size:14px;margin-top:8px;color:var(--text-3)">全程语音闭环：创建 → 提醒 → 响应 → 修改 → 撤销</p>
+      </div>
+    </div>
+    <p class="dim tc mt-l" style="font-size:14px">演示要点：创建日程 / 提醒触发 / 语音回应 / 修改时间 / 撤销操作</p>
+    <aside class="notes">
+      <p>接下来是 Demo 环节，大概 8 分钟。我给大家演示完整的语音闭环。</p>
+      <p>演示路线：</p>
+      <p><strong>第一步</strong>——创建。我按住说话："后天下班买牙膏"。系统自动识别时间、提取关键事项，生成提醒。IM 弹出一条确认回执。</p>
+      <p><strong>第二步</strong>——也创建一个周期性的："每天早上七点吃药，每天一次"。</p>
+      <p><strong>第三步</strong>——查询。"今天有哪些安排？"系统列出今天的事项。</p>
+      <p><strong>第四步</strong>——模拟提醒触发。系统响铃，语音播报"该吃药了"。我回应"知道了"，提醒结束。</p>
+      <p><strong>第五步</strong>——推迟场景。另一个提醒来了，我说"十分钟后再提醒"。1分钟后，如果系统检测到我没回应，自动推迟。</p>
+      <p><strong>第六步</strong>——修改。"明天的会改到四点半"。IM 显示修改成功。</p>
+      <p><strong>第七步</strong>——撤销。"哎不对，撤销刚才的修改"。15 分钟内有效，恢复原时间。</p>
+      <p>OK，Demo 就到这里。一句话总结刚才大家看到的：说出、记住、提醒、回应、修改——<strong>全程没说一句话之外的交互</strong>。这就是语音闭环。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 11. 回顾 ===== -->
+  <section class="slide" data-title="回顾">
+    <p class="kicker">回顾 · 3min</p>
+    <h2 class="h2">我们做到了什么。</h2>
+    <table class="review-table mt-l">
+      <tr><th>维度</th><th>结论</th></tr>
+      <tr><td><strong>问题定义</strong></td><td>现有工具假设用户有手有屏有注意力，日常场景中常有缺失</td></tr>
+      <tr><td><strong>产品方案</strong></td><td>语音优先的三步闭环：说出来 → 到点听 → 随口改</td></tr>
+      <tr><td><strong>工程实现</strong></td><td>代码即架构，主干模块已串联，三个 Proposal 承接完整链路</td></tr>
+      <tr><td><strong>范围控制</strong></td><td>明确选定时间触发 + 普通话 + 固定唤醒词的 MVP 范围</td></tr>
+    </table>
+    <aside class="notes">
+      <p>在总结下一步之前，我们快速回顾一下今天讲了什么。</p>
+      <p><strong>问题定义</strong>：不是用户缺工具，是工具在设计时就假设你有手、有屏幕、有注意力。生活中大量时刻不具备这些条件。</p>
+      <p><strong>产品方案</strong>：语音优先的三步闭环——说出来、到点听、随口改。三个 Proposal 分别对应链路上的三个结点：P1 语音创建、P2 提醒响应、P3 变更控制。</p>
+      <p><strong>工程实现</strong>：我们已经把骨架代码入库，三个 Proposal 从结构上已经承接完整链路。</p>
+      <p><strong>范围控制</strong>：我们很明确地选了——时间触发（不做位置）、普通话（不做方言）、固定唤醒词（不做自定义）、简单周期（不做复杂规则）。这个减法意识本身就是一个产品决策。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 12. 下一步计划 ===== -->
+  <section class="slide" data-title="下一步计划">
+    <p class="kicker">下一步计划 · 3min</p>
+    <h2 class="h2">8 周。<br>从战略决策到<strong style="color:var(--accent)">打磨交付</strong>。</h2>
+    <div class="ms-grid">
+      <div class="ms-card">
+        <div class="tag t1">MS1 · 进行中</div>
+        <h4>战略决策<br>+ 主干串联</h4>
+        <p>三个 Proposal 定稿<br>骨架代码入库<br>架构说明</p>
+      </div>
+      <div class="ms-card">
+        <div class="tag t2">MS2 · 第3-4周</div>
+        <h4>核心闭环跑通</h4>
+        <p>P1+P2 端到端可用<br>真实设备上验证<br>补充架构设计</p>
+      </div>
+      <div class="ms-card">
+        <div class="tag t3">MS3 · 第5-6周</div>
+        <h4>功能闭合<br>+ 质量达标</h4>
+        <p>P3 完整完成<br>三类变更 + 撤销<br>核心模块测试覆盖</p>
+      </div>
+      <div class="ms-card">
+        <div class="tag t4">MS4 · 第7-8周</div>
+        <h4>打磨交付</h4>
+        <p>bug 收敛<br>体验优化<br>v1.0 Tag</p>
+      </div>
+    </div>
+    <aside class="notes">
+      <p>下一步计划。我们用 8 周，分四个 Milestone。</p>
+      <p><strong>MS1</strong>，也就是我们现在的阶段——战略决策加主干串联。三个 Proposal 定稿、骨架代码入库、架构说明文档完成。我们刚从 MS1 走了一半，现在看到的就是这阶段的内容。</p>
+      <p><strong>MS2</strong>，第 3 到 4 周——跑通核心闭环。P1 语音创建 + P2 提醒响应，要在真实设备上端到端可用。到这个阶段，一个用户真正能在手机上"说出来→到点听→随口回应"。</p>
+      <p><strong>MS3</strong>，第 5 到 6 周——功能闭合。把 P3 做完，三类变更加上撤销全部正常运行，核心模块测试覆盖到位。</p>
+      <p><strong>MS4</strong>，最后两周——打磨交付。bug 收敛、体验优化、演示材料完善，打出 v1.0 Tag。</p>
+      <p>关键思路：<strong>8 周交付的是一个可用的闭环，不是一个功能清单。</strong>我们选择把一环做到 90 分，而不是把三环摊开到 60 分。</p>
+    </aside>
+  </section>
+
+  <!-- ===== 13. 总结 ===== -->
+  <section class="slide" data-title="总结">
+    <p class="kicker">总结 & 致谢</p>
+    <p class="big-quote">"把记、提醒、改这三件小事，<br><strong>从手指交还给嘴和耳朵。</strong>"</p>
+    <p class="dim mt-l" style="font-size:17px;max-width:46ch;line-height:1.7">
+      VoiceLife 的产品逻辑其实很简单——在用户双手不便的时刻，给他一个比掏手机更自然的选择。<br><br>
+      我们相信语音交互不是用来炫技的，而是真正嵌入日常生活，让"记住该做的事"变得<strong style="color:var(--accent)">毫不费力</strong>。
+    </p>
+    <div class="mt-xl" style="display:flex;gap:48px;align-items:center">
+      <div>
+        <p style="font-size:14px;color:var(--text-3);margin-bottom:4px">欢迎体验 · 欢迎提问 · 欢迎质疑</p>
+        <p style="font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--text-1)">♪ VoiceLife 声活</p>
+      </div>
+    </div>
+    <div class="deck-footer">
+      <span class="mono">♪ voicelife.app</span>
+      <span class="slide-number" data-current="13" data-total="13"></span>
+    </div>
+    <aside class="notes">
+      <p>最后，我想用一句话总结今天分享的所有内容。</p>
+      <p><strong>"把记、提醒、改这三件小事，从手指交还给嘴和耳朵。"</strong></p>
+      <p>VoiceLife 不是什么宏大的平台、不是什么要改变世界的架构。它就是一个很朴素的洞察：<strong>你不需要掏手机才能记住一件小事。</strong></p>
+      <p>我刚开始做这个产品的时候，好几个人问我："这不就是 Siri 吗？"——今天如果你听完了全程，你应该知道答案了。<strong>Siri 做了"记"，但没做"提醒后的回应"和"随口改"。</strong>语音闭环不是一个功能点，是三个功能点的串联。</p>
+      <p>我们还做了很多减法——不做方言、不做位置触发、不做自定义唤醒词、不做复杂周期。不是因为做不了，而是因为<strong>我们要先验证"语音优先"这个最核心的假设</strong>。如果这个假设成立，再扩展完全不晚。</p>
+      <p>最后我想说：<strong>欢迎提问、欢迎质疑、甚至欢迎反驳。</strong>质疑让我们把产品想得更清楚。每一次有人问"这跟 Siri 有什么区别"，我们就把产品定义往前推了一步。</p>
+      <p>谢谢大家，下面是 Q&A 时间。</p>
+    </aside>
+  </section>
+
+</div>
+
+<div style="position:fixed;bottom:12px;left:12px;font-size:11px;color:rgba(255,255,255,.15);z-index:100;pointer-events:none">
+  S 演讲者视图 · T 切换主题 · ← → 翻页 · F 全屏 · O 总览 · R 重置计时
+</div>
+
+<script src="../../.claude/skills/html-ppt/assets/runtime.js"></script>
+</body>
+</html>
